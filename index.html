@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1408" />
+  <title>Flores amarillas para ti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #f4c430;
+      --gold-deep: #d4a017;
+      --petal: #ffe566;
+      --ink: #3a2a18;
+      --paper: #f7ecd4;
+      --seal: #c0392b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #1a1408;
+      color: var(--ink);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+    }
+
+    #bed {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    #garden {
+      position: absolute;
+      inset: 0;
+      background: #10280c;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.45) 100%);
+      z-index: 2;
+    }
+
+    .hint {
+      position: absolute;
+      top: max(14px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      text-align: center;
+      color: #fff6c8;
+      font-size: clamp(0.95rem, 3.4vw, 1.25rem);
+      letter-spacing: 0.08em;
+      text-shadow: 0 2px 10px rgba(0,0,0,.95), 0 0 18px rgba(0,0,0,.7);
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(20,12,4,.55), rgba(20,12,4,.12) 80%, transparent);
+      padding: 12px 16px 28px;
+      width: min(100vw, 640px);
+    }
+
+    .hint strong {
+      display: block;
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(1.8rem, 7vw, 2.8rem);
+      letter-spacing: 0;
+      font-weight: 400;
+      margin-bottom: 4px;
+      color: #fff4c4;
+    }
+
+    .hint.hidden {
+      opacity: 0 !important;
+      transition: opacity 0.6s ease;
+    }
+
+    .envelope-wrap {
+      position: relative;
+      z-index: 1;
+      width: min(78vw, 320px);
+      aspect-ratio: 1.62 / 1;
+      cursor: pointer;
+      border: none;
+      padding: 0;
+      background: transparent;
+      filter: drop-shadow(0 16px 28px rgba(0,0,0,.4));
+      transform: translateY(8vh);
+    }
+
+    .envelope-wrap:focus { outline: none; }
+
+    .envelope {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .env-body {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(165deg, #fbf3e3 0%, #f0e0c2 48%, #e4d0a8 100%);
+      border-radius: 2px;
+      box-shadow: inset 0 0 0 1px rgba(139, 105, 50, .28);
+    }
+
+    .env-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 54%;
+      background: linear-gradient(180deg, #f7ebd4, #e6d0a4);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      filter: drop-shadow(0 6px 8px rgba(90,50,10,.12));
+      z-index: 2;
+    }
+
+    .env-pocket {
+      position: absolute;
+      inset: 32% 0 0;
+      background: linear-gradient(180deg, #ead9b4, #dcc69a);
+      border-radius: 0 0 2px 2px;
+    }
+
+    .env-line {
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      bottom: 22%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #b8944a 20%, #b8944a 80%, transparent);
+      z-index: 3;
+    }
+
+    .env-label {
+      position: absolute;
+      bottom: 10%;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(1.7rem, 5.5vw, 2.3rem);
+      color: #6a4a1e;
+      z-index: 3;
+      text-shadow: 0 1px 0 rgba(255,255,255,.35);
+    }
+
+    .envelope-wrap.ready .env-label {
+      color: #5a3d14;
+    }
+
+    /* Carta abierta */
+    #letter-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      background: rgba(12, 8, 4, 0);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    #letter-layer.open {
+      pointer-events: auto;
+      opacity: 1;
+      background: rgba(18, 12, 6, .32);
+    }
+
+    .letter {
+      width: min(90vw, 480px);
+      max-height: min(88dvh, 820px);
+      transform-origin: top center;
+      transform: scale(0.96) translateY(12px);
+      opacity: 0;
+      overflow: hidden;
+      border-radius: 0;
+      display: flex;
+      flex-direction: column;
+      background: #faf4e8;
+      box-shadow:
+        0 24px 50px rgba(20, 10, 0, .38),
+        0 0 0 1px rgba(176, 140, 72, .35);
+    }
+
+    #letter-layer.open .letter {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      animation: unfold 0.85s cubic-bezier(.2, .85, .25, 1);
+    }
+
+    @keyframes unfold {
+      0% { transform: scale(0.96) translateY(16px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .letter-paper {
+      background-color: #faf4e8;
+      background-image:
+        linear-gradient(90deg, rgba(160,120,50,.06), transparent 40px),
+        radial-gradient(ellipse at 20% 0%, rgba(255,255,255,.5), transparent 50%);
+      color: var(--ink);
+      padding: 36px 32px 18px;
+      max-height: none;
+      flex: 1;
+      overflow-y: auto;
+      box-shadow: none;
+      -webkit-user-select: text;
+      user-select: text;
+      touch-action: pan-y;
+    }
+
+    .letter-paper h1 {
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(2.1rem, 7.5vw, 3rem);
+      font-weight: 400;
+      text-align: center;
+      color: #6b4a18;
+      margin-bottom: 4px;
+      line-height: 1.15;
+    }
+
+    .letter-date {
+      text-align: center;
+      font-style: italic;
+      font-size: 0.86rem;
+      letter-spacing: 0.06em;
+      color: #8a7348;
+      margin-bottom: 22px;
+    }
+
+    .letter-ornament {
+      display: block;
+      width: 72px;
+      height: 8px;
+      margin: 0 auto 22px;
+      background: linear-gradient(90deg, transparent, #c4a056 20%, #c4a056 80%, transparent);
+      clip-path: none;
+    }
+
+    .letter-paper p {
+      font-family: "Libre Baskerville", "Cormorant Garamond", serif;
+      font-size: clamp(0.92rem, 3.2vw, 1.02rem);
+      line-height: 1.9;
+      margin-bottom: 1.05em;
+      text-align: left;
+      color: #3d2e18;
+    }
+
+    .letter-paper .sign {
+      font-family: "Great Vibes", cursive;
+      font-size: 1.85rem;
+      text-align: right;
+      margin-top: 12px;
+      color: #6b4a18;
+    }
+
+    .close-letter {
+      display: block;
+      margin: 4px auto 22px;
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: #8a7348;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 0.88rem;
+      letter-spacing: 0.18em;
+      text-transform: lowercase;
+      padding: 6px 8px;
+      cursor: pointer;
+      border-radius: 0;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(176, 140, 72, .45);
+    }
+
+    .close-letter:hover {
+      color: #5a3d14;
+    }
+
+    #flowers {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      width: 100%;
+      height: 100%;
+      cursor: none;
+      touch-action: none;
+    }
+
+    #flowers.pass {
+      pointer-events: none;
+    }
+
+    .cursor-bloom {
+      position: fixed;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 236, 140, .45);
+      box-shadow: none;
+      pointer-events: none;
+      z-index: 20;
+      transform: translate(-50%, -50%);
+      display: none;
+      opacity: .55;
+    }
+
+    .confetti {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 9;
+    }
+
+    @media (hover: hover) {
+      .cursor-bloom { display: block; }
+    }
+
+    @media (max-width: 480px) {
+      .envelope-wrap { width: min(84vw, 300px); }
+      .letter-paper { padding: 28px 22px 14px; }
+    }
+  </style>
+</head>
+<body>
+    <!-- Edita el texto de la carta en carta.js -->
+  <div id="scene">
+    <canvas id="bed"></canvas>
+    <div id="garden">
+      <div class="vignette"></div>
+      <p class="hint" id="hint">
+        <strong>Para ti</strong>
+        Barre las flores amarillas con el dedo o el mouse
+      </p>
+
+      <button class="envelope-wrap" id="envelope" type="button" aria-label="Abrir carta">
+        <span class="envelope">
+          <span class="env-body"></span>
+          <span class="env-pocket"></span>
+          <span class="env-flap"></span>
+          <span class="env-line"></span>
+          <span class="env-label">Para ti</span>
+        </span>
+      </button>
+    </div>
+
+    <canvas id="flowers"></canvas>
+    <div class="cursor-bloom" id="cursor"></div>
+    <canvas class="confetti" id="confetti"></canvas>
+
+    <div id="letter-layer" role="dialog" aria-modal="true" aria-labelledby="letter-title">
+      <article class="letter">
+        <div class="letter-paper" id="letter-paper"></div>
+        <button class="close-letter" type="button" id="close-letter">Cerrar</button>
+      </article>
+    </div>
+  </div>
+
+  <script src="carta.js"></script>
+  <script>
+    const CARTA = window.CARTA;
+
+    const hint = document.getElementById("hint");
+    const envelope = document.getElementById("envelope");
+    const canvas = document.getElementById("flowers");
+    const ctx = canvas.getContext("2d", { alpha: true });
+    const bed = document.getElementById("bed");
+    const bedCtx = bed.getContext("2d", { alpha: true });
+    const cursorEl = document.getElementById("cursor");
+    const letterLayer = document.getElementById("letter-layer");
+    const letterPaper = document.getElementById("letter-paper");
+    const confettiCanvas = document.getElementById("confetti");
+    const cfx = confettiCanvas.getContext("2d");
+
+    function esc(s) {
+      return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    }
+
+    function renderLetter() {
+      const ps = CARTA.parrafos.map((p) => `<p>${esc(p)}</p>`).join("");
+      letterPaper.innerHTML = `
+        <h1 id="letter-title">${esc(CARTA.titulo)}</h1>
+        <p class="letter-date">${esc(CARTA.fecha)}</p>
+        <span class="letter-ornament" aria-hidden="true"></span>
+        ${ps}
+        <p class="sign">${esc(CARTA.firma)}</p>
+      `;
+      document.getElementById("close-letter").onclick = closeLetter;
+    }
+    renderLetter();
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    let W = 0, H = 0;
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+    let startX = 0, startY = 0;
+    let cleared = 0;
+    let total = 1;
+    let revealed = false;
+    let refilling = false;
+    let rainSettledAt = 0;
+    let needsPhysics = false;
+    let revealCheck = 0;
+    const SPRITES = [];
+    let spritePad = 64;
+    const HINT_START = "<strong>Para ti</strong>Barre las flores amarillas con el dedo o el mouse";
+    const falling = [];
+    const flowers = [];
+    const bedFlowers = [];
+    const PALETTE = [
+      { light: "#ffe566", mid: "#ffcc22", dark: "#e0a800" },
+      { light: "#fff08a", mid: "#f4c430", dark: "#d4a017" },
+      { light: "#ffef7a", mid: "#ffc107", dark: "#c99200" },
+      { light: "#ffe14d", mid: "#f0b400", dark: "#c47f00" }
+    ];
+
+    function fitCanvas() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      for (const c of [canvas, confettiCanvas, bed]) {
+        c.width = Math.floor(W * dpr);
+        c.height = Math.floor(H * dpr);
+        c.style.width = W + "px";
+        c.style.height = H + "px";
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cfx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      bedCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "low";
+      brushR = Math.max(36, Math.min(W, H) * 0.07);
+    }
+
+    function resize() {
+      if (revealed || cleared > 0 || refilling || letterLayer.classList.contains("open")) return;
+      fitCanvas();
+      buildGarden();
+    }
+
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function bakeSprites() {
+      if (SPRITES.length) return;
+      const base = 52;
+      spritePad = Math.ceil(base * 1.45);
+      for (let i = 0; i < PALETTE.length; i++) {
+        const pal = PALETTE[i];
+        const c = document.createElement("canvas");
+        const scale = 2;
+        c.width = spritePad * 2 * scale;
+        c.height = spritePad * 2 * scale;
+        const g = c.getContext("2d");
+        g.setTransform(scale, 0, 0, scale, spritePad * scale, spritePad * scale);
+        drawFlowerShape(g, { s: base, rot: 0, vx: 0, vy: 0, ...pal });
+        SPRITES.push(c);
+      }
+    }
+
+    function drawFlowerShape(g, f) {
+      g.save();
+      g.rotate(f.rot || 0);
+      const petals = 10;
+      const pr = f.s * 0.68;
+      const pw = f.s * 0.24;
+      g.fillStyle = f.mid;
+      g.strokeStyle = f.dark;
+      g.lineWidth = Math.max(1, f.s * 0.03);
+      for (let i = 0; i < petals; i++) {
+        g.save();
+        g.rotate((i / petals) * Math.PI * 2);
+        g.beginPath();
+        g.ellipse(0, -pr * 0.52, pw, pr * 0.72, 0, 0, Math.PI * 2);
+        g.fill();
+        g.stroke();
+        g.restore();
+      }
+      g.fillStyle = "#5c3810";
+      g.beginPath();
+      g.arc(0, 0, f.s * 0.26, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = "#2a1608";
+      g.beginPath();
+      g.arc(0, 0, f.s * 0.14, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+
+    function blit(g, f) {
+      const img = SPRITES[f.kind];
+      if (!img) return;
+      const dw = f.s * 2.35;
+      g.save();
+      g.translate(f.x, f.y);
+      g.rotate(f.rot);
+      g.drawImage(img, -dw * 0.5, -dw * 0.5, dw, dw);
+      g.restore();
+    }
+
+    function makeFlower(x, y, sMin, sMax) {
+      return {
+        x, y,
+        s: rnd(sMin, sMax),
+        rot: rnd(0, Math.PI * 2),
+        vx: 0,
+        vy: 0,
+        vr: 0,
+        gone: false,
+        kind: (Math.random() * PALETTE.length) | 0
+      };
+    }
+
+    function paintField(g, list, fillBg) {
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, W, H);
+      if (fillBg) {
+        g.fillStyle = "#174a12";
+        g.fillRect(0, 0, W, H);
+      }
+      for (let i = 0; i < list.length; i++) blit(g, list[i]);
+    }
+
+    function scatter(into, gap, sMin, sMax) {
+      const cols = Math.ceil(W / gap) + 1;
+      const rows = Math.ceil(H / gap) + 1;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          into.push(makeFlower(
+            c * gap - gap * 0.25 + rnd(-gap * 0.2, gap * 0.2),
+            r * gap - gap * 0.25 + rnd(-gap * 0.2, gap * 0.2),
+            sMin,
+            sMax
+          ));
+        }
+      }
+    }
+
+    function clusterCenter(into, count, sMin, sMax, spreadX, spreadY, cx, cy) {
+      for (let i = 0; i < count; i++) {
+        const a = rnd(0, Math.PI * 2);
+        const rad = Math.pow(Math.random(), 0.72);
+        into.push(makeFlower(
+          cx + Math.cos(a) * rad * spreadX,
+          cy + Math.sin(a) * rad * spreadY,
+          sMin,
+          sMax
+        ));
+      }
+    }
+
+    function packOverlay() {
+      flowers.length = 0;
+      const gap = Math.max(54, Math.min(W, H) / 11);
+      scatter(flowers, gap, 36, 52);
+      const cx = W * 0.5;
+      const cy = H * 0.56;
+      const extra = Math.round(55 + (W * H) / 14000);
+      clusterCenter(flowers, extra, 40, 58, Math.min(W * 0.36, 220), Math.min(H * 0.28, 180), cx, cy);
+      clusterCenter(flowers, Math.round(extra * 0.7), 42, 60, Math.min(W * 0.2, 130), Math.min(H * 0.16, 100), cx, cy);
+      total = flowers.length;
+    }
+
+    function buildGarden() {
+      bakeSprites();
+      bedFlowers.length = 0;
+      const gap = Math.max(54, Math.min(W, H) / 11);
+      scatter(bedFlowers, gap, 40, 56);
+      packOverlay();
+
+      paintField(bedCtx, bedFlowers, true);
+      paintField(ctx, flowers, false);
+      bed.style.opacity = "0";
+
+      cleared = 0;
+      revealed = false;
+      needsPhysics = false;
+      canvas.classList.remove("pass");
+      hint.classList.remove("hidden");
+      envelope.classList.remove("ready");
+    }
+
+    function sweep(x0, y0, x1, y1) {
+      const dx = x1 - x0;
+      const dy = y1 - y0;
+      const dist = dx * dx + dy * dy;
+      if (dist < 1) return;
+      const inv = 1 / Math.sqrt(dist);
+      const ux = dx * inv;
+      const uy = dy * inv;
+      const radius = Math.max(72, Math.min(W, H) * 0.12);
+      const r2 = radius * radius;
+      const force = Math.min(26, 9 + Math.sqrt(dist) * 0.5);
+      for (let i = 0; i < flowers.length; i++) {
+        const f = flowers[i];
+        if (f.gone) continue;
+        const ex = f.x - x1;
+        const ey = f.y - y1;
+        const d2 = ex * ex + ey * ey;
+        if (d2 > r2) continue;
+        const d = Math.sqrt(d2) || 1;
+        const inf = 1 - d / radius;
+        const k = force * inf;
+        f.vx += ux * k + uy * (Math.random() - 0.5) * 1.2;
+        f.vy += uy * k - ux * (Math.random() - 0.5) * 1.2;
+        f.vr += (Math.random() - 0.5) * 0.2 * inf;
+      }
+      needsPhysics = true;
+    }
+
+    function flowersOverEnvelope() {
+      const r = envelope.getBoundingClientRect();
+      let n = 0;
+      for (let i = 0; i < flowers.length; i++) {
+        const f = flowers[i];
+        if (f.gone) continue;
+        if (f.x > r.left - 24 && f.x < r.right + 24 && f.y > r.top - 24 && f.y < r.bottom + 24) n++;
+      }
+      return n;
+    }
+
+    function flowerNear(x, y) {
+      for (let i = 0; i < flowers.length; i++) {
+        const f = flowers[i];
+        if (f.gone) continue;
+        const dx = f.x - x;
+        const dy = f.y - y;
+        if (dx * dx + dy * dy < f.s * f.s * 0.55) return true;
+      }
+      return false;
+    }
+
+    function stepPhysics() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      let moving = false;
+      let goneN = 0;
+      const margin = 100;
+      for (let i = 0; i < flowers.length; i++) {
+        const f = flowers[i];
+        if (f.gone) {
+          goneN++;
+          continue;
+        }
+        f.vx *= 0.92;
+        f.vy *= 0.92;
+        if (f.vx * f.vx + f.vy * f.vy > 0.01) {
+          f.x += f.vx;
+          f.y += f.vy;
+          f.rot += f.vr;
+          f.vr *= 0.97;
+          moving = true;
+        } else {
+          f.vx = 0;
+          f.vy = 0;
+        }
+        if (f.x < -margin || f.x > W + margin || f.y < -margin || f.y > H + margin) {
+          f.gone = true;
+          goneN++;
+          continue;
+        }
+        blit(ctx, f);
+      }
+      needsPhysics = moving;
+      cleared = goneN;
+      revealCheck++;
+      if (!revealed && revealCheck % 6 === 0) {
+        if (goneN / Math.max(1, total) > 0.18 || flowersOverEnvelope() < 5) onReveal();
+      }
+    }
+
+    function onReveal() {
+      revealed = true;
+      envelope.classList.add("ready");
+      hint.innerHTML = "<strong>Ya es tuya</strong>Toca la carta para abrirla";
+      canvas.classList.add("pass");
+    }
+
+    function openLetter() {
+      if (refilling) return;
+      revealed = true;
+      canvas.classList.add("pass");
+      bed.style.opacity = "1";
+      hint.style.opacity = "0";
+      letterLayer.classList.add("open");
+      burstConfetti();
+    }
+
+    function pos(e) {
+      const t = e.touches ? e.touches[0] : e;
+      return { x: t.clientX, y: t.clientY };
+    }
+
+    function start(e) {
+      if (refilling || letterLayer.classList.contains("open")) return;
+      e.preventDefault();
+      drawing = true;
+      const p = pos(e);
+      lastX = p.x;
+      lastY = p.y;
+      startX = p.x;
+      startY = p.y;
+      moveCursor(p.x, p.y);
+    }
+
+    function move(e) {
+      const p = pos(e);
+      moveCursor(p.x, p.y);
+      if (!drawing) return;
+      e.preventDefault();
+      sweep(lastX, lastY, p.x, p.y);
+      lastX = p.x;
+      lastY = p.y;
+    }
+
+    function end(e) {
+      if (!drawing) return;
+      drawing = false;
+      if (!e) return;
+      const p = e.changedTouches ? e.changedTouches[0] : e;
+      if (!p) return;
+      if (Math.hypot(p.clientX - startX, p.clientY - startY) > 14) return;
+      tryClickThrough(p.clientX, p.clientY);
+    }
+
+    function tryClickThrough(x, y) {
+      if (flowerNear(x, y) && !revealed) return;
+      canvas.style.pointerEvents = "none";
+      const hit = document.elementFromPoint(x, y);
+      canvas.style.pointerEvents = "";
+      if (hit && envelope.contains(hit)) {
+        envelope.classList.add("ready");
+        openLetter();
+      }
+    }
+
+    function moveCursor(x, y) {
+      cursorEl.style.left = x + "px";
+      cursorEl.style.top = y + "px";
+    }
+
+    canvas.addEventListener("mousedown", start);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", end);
+    canvas.addEventListener("touchstart", start, { passive: false });
+    canvas.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", end);
+    window.addEventListener("touchcancel", () => { drawing = false; });
+
+    envelope.addEventListener("click", () => {
+      if (!revealed && flowersOverEnvelope() > 6) return;
+      openLetter();
+    });
+
+    function closeLetter() {
+      letterLayer.classList.remove("open");
+      hint.style.opacity = "";
+      bits.length = 0;
+      startFlowerRain();
+    }
+
+    function startFlowerRain() {
+      if (refilling) return;
+      bakeSprites();
+      refilling = true;
+      drawing = false;
+      canvas.classList.remove("pass");
+      envelope.classList.remove("ready");
+      hint.innerHTML = "<strong>Otra vez</strong>Las flores vuelven a cubrirte";
+      falling.length = 0;
+      rainSettledAt = 0;
+      bed.style.opacity = "0";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, W, H);
+      const now = performance.now();
+      const gap = Math.max(62, Math.min(W, H) / 9);
+      const cols = Math.ceil(W / gap) + 1;
+      const rows = Math.ceil(H / gap) + 1;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const jitterX = (Math.random() - 0.5) * gap * 0.4;
+          const jitterY = (Math.random() - 0.5) * gap * 0.4;
+          const f = makeFlower(
+            c * gap - gap * 0.5 + jitterX,
+            r * gap - gap * 0.15 + jitterY,
+            34,
+            56
+          );
+          falling.push({
+            ...f,
+            tx: f.x,
+            ty: f.y,
+            x: f.x + rnd(-90, 90),
+            y: -40 - rnd(20, 160) - r * 6,
+            vy: rnd(3.2, 6.5),
+            vr: rnd(-0.14, 0.14),
+            delay: r * 95 + c * 10 + rnd(0, 50),
+            born: now,
+            landed: false
+          });
+        }
+      }
+    }
+
+    function stepRain(now) {
+      let pending = 0;
+      for (let i = 0; i < falling.length; i++) {
+        const p = falling[i];
+        if (p.landed) continue;
+        if (now - p.born < p.delay) {
+          pending++;
+          continue;
+        }
+        p.vy = Math.min(22, p.vy + 0.62);
+        p.y += p.vy;
+        p.x += (p.tx - p.x) * 0.045;
+        p.rot += p.vr;
+        if (p.y >= p.ty) {
+          p.y = p.ty;
+          p.x = p.tx;
+          p.landed = true;
+          blit(ctx, p);
+          continue;
+        }
+        pending++;
+        blit(cfx, p);
+      }
+      if (pending === 0) {
+        if (!rainSettledAt) rainSettledAt = now;
+        if (now - rainSettledAt > 220) finishRefill();
+      } else {
+        rainSettledAt = 0;
+      }
+    }
+
+    function finishRefill() {
+      falling.length = 0;
+      rainSettledAt = 0;
+      packOverlay();
+      paintField(ctx, flowers, false);
+      cleared = 0;
+      revealed = false;
+      refilling = false;
+      needsPhysics = false;
+      canvas.classList.remove("pass");
+      hint.innerHTML = HINT_START;
+      bed.style.opacity = "0";
+    }
+
+    letterLayer.addEventListener("click", (e) => {
+      if (e.target === letterLayer) closeLetter();
+    });
+
+    /* Pétalos que vuelan al barrer */
+    const flying = [];
+    function spawnPetals(x, y) {
+      for (let i = 0; i < 1; i++) {
+        flying.push({
+          x, y,
+          vx: rnd(-3.2, 3.2),
+          vy: rnd(-4.5, -0.6),
+          rot: rnd(0, Math.PI * 2),
+          vr: rnd(-0.2, 0.2),
+          life: 1,
+          color: pick(PALETTE).mid,
+          w: rnd(5, 11),
+          h: rnd(10, 18)
+        });
+      }
+    }
+
+    const bits = [];
+    function burstConfetti() {
+      bits.length = 0;
+      for (let i = 0; i < 36; i++) {
+        bits.push({
+          x: W / 2 + rnd(-40, 40),
+          y: H * 0.42,
+          vx: rnd(-7, 7),
+          vy: rnd(-11, -3),
+          rot: rnd(0, Math.PI * 2),
+          vr: rnd(-0.25, 0.25),
+          color: pick(PALETTE).mid,
+          w: rnd(4, 10),
+          h: rnd(8, 16),
+          life: 1
+        });
+      }
+    }
+
+    function tick(now) {
+      const rain = refilling;
+      if (rain || bits.length || flying.length) cfx.clearRect(0, 0, W, H);
+      if (rain) stepRain(now || performance.now());
+      else if (needsPhysics) stepPhysics();
+      for (let i = flying.length - 1; i >= 0; i--) {
+        const p = flying[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12;
+        p.rot += p.vr;
+        p.life -= 0.018;
+        if (p.life <= 0) { flying.splice(i, 1); continue; }
+        cfx.save();
+        cfx.translate(p.x, p.y);
+        cfx.rotate(p.rot);
+        cfx.globalAlpha = Math.max(0, p.life);
+        cfx.fillStyle = p.color;
+        cfx.beginPath();
+        cfx.ellipse(0, 0, p.w, p.h, 0, 0, Math.PI * 2);
+        cfx.fill();
+        cfx.restore();
+      }
+      for (let i = bits.length - 1; i >= 0; i--) {
+        const p = bits[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.18;
+        p.rot += p.vr;
+        p.life -= 0.008;
+        if (p.life <= 0 || p.y > H + 20) { bits.splice(i, 1); continue; }
+        cfx.save();
+        cfx.translate(p.x, p.y);
+        cfx.rotate(p.rot);
+        cfx.globalAlpha = Math.max(0, p.life);
+        cfx.fillStyle = p.color;
+        cfx.beginPath();
+        cfx.ellipse(0, 0, p.w, p.h, 0, 0, Math.PI * 2);
+        cfx.fill();
+        cfx.restore();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener("resize", resize);
+
+    resize();
+    tick();
+
+    const q = new URLSearchParams(location.search);
+    if (q.has("rascar")) {
+      for (let x = W * 0.15; x < W * 0.85; x += 30) {
+        sweep(x, H * 0.25, x + 40, H * 0.7);
+      }
+    }
+    if (q.has("carta")) {
+      revealed = true;
+      canvas.classList.add("pass");
+      envelope.classList.add("ready");
+      openLetter();
+    }
+    if (q.has("lluvia")) startFlowerRain();
+  </script>
+</body>
+</html>
